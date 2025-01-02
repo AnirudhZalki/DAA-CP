@@ -1,49 +1,70 @@
-#include <iostream>
-#include <string>
-#include <iomanip>
+#include<bits/stdc++.h>
 
 using namespace std;
 
-
-struct Transaction {
+class Transaction {
+private:
     string type;
     double amount;
     string timestamp;
-    Transaction* next;
-    Transaction* prev;
+    Transaction* left;
+    Transaction* right;
+
+public:
+    Transaction(const string& t, double a, const string& ts)
+        : type(t), amount(a), timestamp(ts), left(nullptr), right(nullptr) {}
+
+    friend class FareCollector;
 };
 
 class FareCollector {
 private:
-    Transaction* head;
-    Transaction* tail;
+    Transaction* root;
     double totalParkingFare;
     double totalTollFare;
 
-public:
-    FareCollector() : head(nullptr), tail(nullptr), totalParkingFare(0), totalTollFare(0) {}
-
-
-    void addTransaction(const string& type, double amount, const string& timestamp) {
-        Transaction* newTransaction = new Transaction{type, amount, timestamp, nullptr, nullptr};
-
-        if (type == "Parking") {
-            totalParkingFare += amount;
-        } else if (type == "Toll") {
-            totalTollFare += amount;
+    void addTransactionHelper(Transaction*& node, const string& type, double amount, const string& timestamp) {
+        if (!node) {
+            node = new Transaction(type, amount, timestamp);
+            if (type == "Parking") totalParkingFare += amount;
+            else if (type == "Toll") totalTollFare += amount;
+            return;
         }
 
-        if (!head) {
-            head = tail = newTransaction;
+        if (amount < node->amount) {
+            addTransactionHelper(node->left, type, amount, timestamp);
         } else {
-            tail->next = newTransaction;
-            newTransaction->prev = tail;
-            tail = newTransaction;
+            addTransactionHelper(node->right, type, amount, timestamp);
         }
     }
 
+    void displayTransactionsHelper(Transaction* node) const {
+        if (!node) return;
+
+        displayTransactionsHelper(node->left);
+        cout << left << setw(15) << node->type
+             << setw(10) << node->amount
+             << setw(20) << node->timestamp << endl;
+        displayTransactionsHelper(node->right);
+    }
+
+    void cleanup(Transaction* node) {
+        if (!node) return;
+
+        cleanup(node->left);
+        cleanup(node->right);
+        delete node;
+    }
+
+public:
+    FareCollector() : root(nullptr), totalParkingFare(0), totalTollFare(0) {}
+
+    void addTransaction(const string& type, double amount, const string& timestamp) {
+        addTransactionHelper(root, type, amount, timestamp);
+    }
+
     void displayTransactions() const {
-        if (!head) {
+        if (!root) {
             cout << "No transactions recorded.\n";
             return;
         }
@@ -51,13 +72,7 @@ public:
         cout << left << setw(15) << "Type" << setw(10) << "Amount (₹)" << setw(20) << "Timestamp" << endl;
         cout << string(45, '-') << endl;
 
-        Transaction* current = head;
-        while (current) {
-            cout << left << setw(15) << current->type
-                 << setw(10) << current->amount
-                 << setw(20) << current->timestamp << endl;
-            current = current->next;
-        }
+        displayTransactionsHelper(root);
     }
 
     void displayTotalFare() const {
@@ -67,27 +82,59 @@ public:
     }
 
     ~FareCollector() {
-        Transaction* current = head;
-        while (current) {
-            Transaction* temp = current;
-            current = current->next;
-            delete temp;
-        }
+        cleanup(root);
     }
 };
 
 int main() {
     FareCollector fareCollector;
+    int choice;
 
-    fareCollector.addTransaction("Parking", 50.0, "2024-12-25 10:00");
-    fareCollector.addTransaction("Toll", 30.0, "2024-12-25 10:15");
-    fareCollector.addTransaction("Parking", 20.0, "2024-12-25 11:00");
-    fareCollector.addTransaction("Toll", 40.0, "2024-12-25 11:30");
+    do {
+        cout << "\nMenu:\n";
+        cout << "1. Add Transaction\n";
+        cout << "2. Display Transactions\n";
+        cout << "3. Display Total Fares\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
 
-    cout << "Transaction Details:\n";
-    fareCollector.displayTransactions();
+        switch (choice) {
+            case 1: {
+                string type, timestamp;
+                double amount;
 
-    fareCollector.displayTotalFare();
+                cout << "Enter transaction type (e.g., Parking, Toll): ";
+                cin.ignore(); // Clear input buffer
+                getline(cin, type);
+
+                cout << "Enter amount (₹): ";
+                cin >> amount;
+
+                cout << "Enter timestamp (YYYY-MM-DD HH:MM): ";
+                cin.ignore(); // Clear input buffer
+                getline(cin, timestamp);
+
+                fareCollector.addTransaction(type, amount, timestamp);
+                break;
+            }
+            case 2:
+                cout << "\nTransaction Details:\n";
+                fareCollector.displayTransactions();
+                break;
+
+            case 3:
+                fareCollector.displayTotalFare();
+                break;
+
+            case 4:
+                cout << "Exiting program.\n";
+                break;
+
+            default:
+                cout << "Invalid choice. Please try again.\n";
+        }
+    } while (choice != 4);
 
     return 0;
 }
