@@ -1,48 +1,23 @@
-#include <iostream>
-#include <string>
-#include <iomanip>
-#include <vector>
-
+#include <bits/stdc++.h>
 using namespace std;
 
-struct Transaction {
+class Transaction {
+private:
     string type;
     double amount;
     string timestamp;
-    Transaction* next;
-    Transaction* prev;
+
+public:
+    Transaction(const string& t, double a, const string& ts) : type(t), amount(a), timestamp(ts) {}
+
+    string getType() const { return type; }
+    double getAmount() const { return amount; }
+    string getTimestamp() const { return timestamp; }
 };
 
 class FareCollector {
 private:
-    Transaction* head;
-    Transaction* tail;
-
-public:
-
-    FareCollector() : head(nullptr), tail(nullptr) {}
-
-    void addTransaction(const string& type, double amount, const string& timestamp) {
-        Transaction* newTransaction = new Transaction{type, amount, timestamp, nullptr, nullptr};
-
-        if (!head) {
-            head = tail = newTransaction;
-        } else {
-            tail->next = newTransaction;
-            newTransaction->prev = tail;
-            tail = newTransaction;
-        }
-    }
-
-    vector<double> extractFares() const {
-        vector<double> fares;
-        Transaction* current = head;
-        while (current) {
-            fares.push_back(current->amount);
-            current = current->next;
-        }
-        return fares;
-    }
+    vector<Transaction> transactions;
 
     void heapify(vector<double>& fares, int n, int i) {
         int largest = i;  // Initialize the largest as root
@@ -72,73 +47,102 @@ public:
         }
 
         for (int i = n - 1; i > 0; i--) {
-            // Move the current root to the end
             swap(fares[0], fares[i]);
-
             heapify(fares, i, 0);
         }
     }
 
-    void displaySortedFares() {
-        vector<double> fares = extractFares();
+public:
+    void addTransaction(const string& type, double amount, const string& timestamp) {
+        transactions.emplace_back(type, amount, timestamp);
+    }
 
-        if (fares.empty()) {
+    void displayTransactions() const {
+        if (transactions.empty()) {
+            cout << "No transactions recorded.\n";
+            return;
+        }
+
+        cout << left << setw(15) << "Type" << setw(10) << "Amount (₹)" << (20) << "Timestamp" << endl;
+        cout << string(45, '-') << endl;
+
+        for (const auto& transaction : transactions) {
+            cout << left << setw(15) << transaction.getType()
+                 << setw(10) << transaction.getAmount()
+                 << setw(20) << transaction.getTimestamp() << endl;
+        }
+    }
+
+    void displaySortedFares() {
+        if (transactions.empty()) {
             cout << "No fares to sort.\n";
             return;
         }
 
+        vector<double> fares;
+        for (const auto& transaction : transactions) {
+            fares.push_back(transaction.getAmount());
+        }
+
         heapSort(fares);
 
-        cout << "\nSorted Fares (₹): ";
+        cout << "\nSorted Fares (\u20B9): ";
         for (double fare : fares) {
             cout << fare << " ";
         }
         cout << endl;
     }
-
-      void displayTransactions() const {
-        if (!head) {
-            cout << "No transactions recorded.\n";
-            return;
-        }
-
-        cout << left << setw(15) << "Type" << setw(10) << "Amount (₹)" << setw(20) << "Timestamp" << endl;
-        cout << string(45, '-') << endl;
-
-        Transaction* current = head;
-        while (current) {
-            cout << left << setw(15) << current->type
-                 << setw(10) << current->amount
-                 << setw(20) << current->timestamp << endl;
-            current = current->next;
-        }
-    }
-
-    ~FareCollector() {
-        Transaction* current = head;
-        while (current) {
-            Transaction* temp = current;
-            current = current->next;
-            delete temp;
-        }
-    }
 };
 
 int main() {
     FareCollector fareCollector;
+    int choice;
 
-    // Adding some sample transactions
-    fareCollector.addTransaction("Parking", 50.0, "2024-12-25 10:00");
-    fareCollector.addTransaction("Toll", 30.0, "2024-12-25 10:15");
-    fareCollector.addTransaction("Parking", 20.0, "2024-12-25 11:00");
-    fareCollector.addTransaction("Toll", 40.0, "2024-12-25 11:30");
+    do {
+        cout << "\nMenu:\n";
+        cout << "1. Add Transaction\n";
+        cout << "2. Display Transactions\n";
+        cout << "3. Display Sorted Fares\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
 
-    // Display transactions
-    cout << "Transaction Details:\n";
-    fareCollector.displayTransactions();
+        switch (choice) {
+            case 1: {
+                string type, timestamp;
+                double amount;
 
-    // Display sorted fares
-    fareCollector.displaySortedFares();
+                cout << "Enter transaction type (e.g., Parking, Toll): ";
+                cin.ignore(); // Clear input buffer
+                getline(cin, type);
+
+                cout << "Enter amount (\u20B9): ";
+                cin >> amount;
+
+                cout << "Enter timestamp (YYYY-MM-DD HH:MM): ";
+                cin.ignore(); // Clear input buffer
+                getline(cin, timestamp);
+
+                fareCollector.addTransaction(type, amount, timestamp);
+                break;
+            }
+            case 2:
+                cout << "\nTransaction Details:\n";
+                fareCollector.displayTransactions();
+                break;
+
+            case 3:
+                fareCollector.displaySortedFares();
+                break;
+
+            case 4:
+                cout << "Exiting program.\n";
+                break;
+
+            default:
+                cout << "Invalid choice. Please try again.\n";
+        }
+    } while (choice != 4);
 
     return 0;
 }
