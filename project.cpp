@@ -201,7 +201,7 @@ public:
             return;
         }
 
-        cout << left << setw(15) << "Type" << setw(10) << "Amount (₹)" << setw(20) << "Timestamp" << endl;
+        cout << left << setw(15) << "Type" << setw(10) << "Amount (â‚¹)" << setw(20) << "Timestamp" << endl;
         cout << string(45, '-') << endl;
 
         Transaction* current = head;
@@ -214,9 +214,9 @@ public:
     }
 
     void displayTotalFare() const {
-        cout << "\nTotal Parking Fare: ₹" << totalParkingFare << endl;
-        cout << "Total Toll Fare: ₹" << totalTollFare << endl;
-        cout << "Grand Total Fare: ₹" << (totalParkingFare + totalTollFare) << endl;
+        cout << "\nTotal Parking Fare: â‚¹" << totalParkingFare << endl;
+        cout << "Total Toll Fare: â‚¹" << totalTollFare << endl;
+        cout << "Grand Total Fare: â‚¹" << (totalParkingFare + totalTollFare) << endl;
     }
 
     ~FareCollector() {
@@ -329,7 +329,7 @@ public:
 
         heapSort(fares);
 
-        cout << "\nSorted Fares (₹): ";
+        cout << "\nSorted Fares (â‚¹): ";
         for (double fare : fares) {
             cout << fare << " ";
         }
@@ -342,7 +342,7 @@ public:
             return;
         }
 
-        cout << left << setw(15) << "Type" << setw(10) << "Amount (₹)" << setw(20) << "Timestamp" << endl;
+        cout << left << setw(15) << "Type" << setw(10) << "Amount (â‚¹)" << setw(20) << "Timestamp" << endl;
         cout << string(45, '-') << endl;
 
         Transaction1* current = head;
